@@ -32,6 +32,7 @@ jobs:
         run: |
           # 保存ディレクトリに移動
           cp -r fetched_source/* ./
+          rm -rf fetched_source/index.html
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           if [ -n "$(git status --porcelain)" ]; then
