@@ -1,0 +1,50 @@
+name: Daily Source Code Fetch and Commit
+
+on:
+  schedule:
+    # 毎日午前0時（UTC）に実行
+    - cron: "0 0 * * *"
+
+jobs:
+  fetch_and_commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      # リポジトリをチェックアウト
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # 必要なツールをインストール
+      - name: Install curl and git
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl git
+
+      # ソースコードを取得
+      - name: Fetch source code
+        run: |
+          mkdir -p fetched_source
+          curl -L https://chanceapp.com/ -o fetched_source/index.html
+
+      # 変更があればコミット
+      - name: Check for changes and commit
+        run: |
+          # 保存ディレクトリに移動
+          cp -r fetched_source/* ./
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Daily update: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
+          else
+            echo "No changes detected"
+          fi
+
+      # 変更をプッシュ
+      - name: Push changes
+        run: |
+          if [ -n "$(git log --oneline -1 --grep='Daily update')" ]; then
+            git push
+          else
+            echo "No changes to push"
+          fi
